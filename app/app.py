@@ -54,12 +54,14 @@ def get_embeddings(text):
 st.title("Question Answering Chatbot")
 user_input = st.text_input("Please enter your question:")
 
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
 if st.button("Submit"):
     if user_input:
         cached_answer = get_cached_answer(user_input)
         if cached_answer:
-            st.write(f"Q: {user_input}")
-            st.write(f"A: {cached_answer} (cached)")
+            st.session_state.chat_history.append((user_input, cached_answer + " (cached)"))
         else:
             user_input_vector = get_embeddings(user_input)
 
@@ -78,8 +80,7 @@ if st.button("Submit"):
                         ]
                     )
                     answer = response.choices[0].message.content
-                    st.write(f"Q: {user_input}")
-                    st.write(f"A: {answer}")
+                    st.session_state.chat_history.append((user_input, answer))
                     cache_answer(user_input, answer)
                 else:
                     response = openai.chat.completions.create(
@@ -90,8 +91,7 @@ if st.button("Submit"):
                         ]
                     )
                     answer = response.choices[0].message.content
-                    st.write(f"Q: {user_input}")
-                    st.write(f"A: {answer}")
+                    st.session_state.chat_history.append((user_input, answer))
                     cache_answer(user_input, answer)
             else:
                 # If the index does not exist, fallback to OpenAI only
@@ -103,8 +103,12 @@ if st.button("Submit"):
                     ]
                 )
                 answer = response.choices[0].message.content
-                st.write(f"Q: {user_input}")
-                st.write(f"A: {answer}")
+                st.session_state.chat_history.append((user_input, answer))
                 cache_answer(user_input, answer)
     else:
         st.write("Please enter your question")
+
+if st.session_state.chat_history:
+    for q, a in st.session_state.chat_history:
+        st.write(f"Q: {q}")
+        st.write(f"A: {a}")

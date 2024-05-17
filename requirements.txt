@@ -1,0 +1,6 @@
+streamlit
+boto3
+pinecone-client
+openai
+python-dotenv
+momento

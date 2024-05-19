@@ -31,16 +31,25 @@ def index_qa_data(pinecone_index, qa_data):
 
     # Pineconeに接続
     pinecone.init(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
+
+    # インデックスの作成
+    if pinecone_index not in pinecone.list_indexes():
+        pinecone.create_index(pinecone_index, dimension=1536)
+
     index = pinecone.Index(pinecone_index)
 
     # データをインデックス
-    for data in qa_data:
+    for i, data in enumerate(qa_data):
         question = data["question"]
         answer = data["answer"]
         # ベクトル化: OpenAI APIを使用
         question_embedding = get_embedding(question)
+        answer_embedding = get_embedding(answer)
         # Pineconeにインデックス登録
-        index.upsert(vectors=[(question_embedding, question)], metadata={"text": question, "answer": answer})
+        index.upsert(vectors=[
+            (f'question-{i}', question_embedding, {"text": question, "answer": answer}),
+            (f'answer-{i}', answer_embedding, {"text": question, "answer": answer})
+        ])
 
 # ベクトル化関数
 def get_embedding(text):
@@ -49,7 +58,7 @@ def get_embedding(text):
         model="text-embedding-3-small",
         input=[text.replace("\n", " ")]
     )
-    return response.data[0].embedding
+    return response['data'][0]['embedding']
 
 # メイン処理
 if __name__ == "__main__":

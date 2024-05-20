@@ -14,7 +14,7 @@ pc = pinecone.Pinecone(
     api_key=os.getenv("PINECONE_API_KEY"),
     environment=os.getenv("PINECONE_ENVIRONMENT")
 )
-pinecone_index = "ragchat-local"
+PINECONE_INDEX_NAME = os.getenv("PINECONE_INDEX_NAME")
 
 # Initialize OpenAI
 openai = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -66,8 +66,8 @@ if st.button("Submit"):
             user_input_vector = get_embeddings(user_input)
 
             # Check if the index exists
-            if pinecone_index in pc.list_indexes():
-                index = pc.Index(pinecone_index, host=os.getenv("PINECONE_HOST"))
+            if PINECONE_INDEX_NAME in pc.list_indexes():
+                index = pc.Index(PINECONE_INDEX_NAME, host=os.getenv("PINECONE_HOST"))
                 query_result = index.query(vector=user_input_vector, top_k=1)
 
                 if query_result['matches']:
